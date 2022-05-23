@@ -2,9 +2,8 @@ import scipy.io
 import os.path
 import numpy as np
 
-def data_acquisition(patient='GDN0001', scenario='_1_Resting', to_end=False):
-    path = os.path.join('displacement_data', patient, patient + scenario + '.mat')
-    mat = scipy.io.loadmat(path)
+def data_acquisition(file='displacement_data\GDN0001\GDN0001_2_Valsalva.mat', to_end=False):
+    mat = scipy.io.loadmat(file)
 
     fs_radar                = mat['fs_radar'][0][0]
     fs_ecg                  = mat['fs_ecg'][0][0]
@@ -21,14 +20,14 @@ def data_acquisition(patient='GDN0001', scenario='_1_Resting', to_end=False):
     tfm_bp                  = mat['tfm_bp'][:, 0]
     tfm_intervention        = mat['tfm_intervention'][:, 0]
 
-    radar_i_end_time        = len(radar_i)-1/fs_radar
-    radar_q_end_time        = len(radar_q)-1/fs_radar
-    displacement_end_time   = len(displacement)-1/fs_radar
-    ecg1_end_time           = len(tfm_ecg1)-1/fs_ecg
-    ecg2_end_time           = len(tfm_ecg2)-1/fs_ecg
-    icg_end_time            = len(tfm_icg)-1/fs_icg
-    bp_end_time             = len(tfm_bp)-1/fs_bp
-    interventions_end_time  = len(tfm_intervention)-1/fs_intervention
+    radar_i_end_time        = (len(radar_i)-1)/fs_radar
+    radar_q_end_time        = (len(radar_q)-1)/fs_radar
+    displacement_end_time   = (len(displacement)-1)/fs_radar
+    ecg1_end_time           = (len(tfm_ecg1)-1)/fs_ecg
+    ecg2_end_time           = (len(tfm_ecg2)-1)/fs_ecg
+    icg_end_time            = (len(tfm_icg)-1)/fs_icg
+    bp_end_time             = (len(tfm_bp)-1)/fs_bp
+    interventions_end_time  = (len(tfm_intervention)-1)/fs_intervention
 
     if radar_i_end_time == radar_q_end_time == displacement_end_time == ecg1_end_time == ecg2_end_time \
             == icg_end_time == bp_end_time == interventions_end_time:
@@ -38,7 +37,8 @@ def data_acquisition(patient='GDN0001', scenario='_1_Resting', to_end=False):
                        icg_end_time, bp_end_time, interventions_end_time)
 
     if to_end:
-        radar_start_ind = 2e4
+        radar_start_ind = 0
+
         radar_indices           = np.arange(radar_start_ind, end_time*fs_radar, dtype=int)
         ecg_indices             = np.arange(radar_start_ind*fs_ecg/fs_radar, end_time*fs_ecg, dtype=int)
         bp_indices              = np.arange(radar_start_ind*fs_bp/fs_radar, end_time*fs_bp, dtype=int)
@@ -46,7 +46,7 @@ def data_acquisition(patient='GDN0001', scenario='_1_Resting', to_end=False):
         intervention_indices    = np.arange(radar_start_ind*fs_intervention, end_time*fs_intervention, dtype=int)
     else:
         radar_start_ind = 2e4
-        radar_end_ind = 1e6
+        radar_end_ind = 1e5
         radar_indices           = np.arange(radar_start_ind, radar_end_ind, dtype=int)
         ecg_indices             = np.arange(radar_start_ind*fs_ecg/fs_radar, radar_end_ind*fs_ecg/fs_radar, dtype=int)
         bp_indices              = np.arange(radar_start_ind*fs_bp/fs_radar, radar_end_ind*fs_bp/fs_radar, dtype=int)
