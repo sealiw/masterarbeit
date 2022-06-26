@@ -4,9 +4,7 @@ plt.rcParams.update({'font.size': 22})
 import numpy as np
 import pickle
 from scipy import signal, interpolate
-import robustsp.DependentData.arma_est_bip_mm as arma_est_bip_mm
 import robustsp.LocationScale.MLocHub as MLocHub
-import robustsp.LocationScale.MscaleTUK as MscaleTUK
 import pywt
 from ecgdetectors import Detectors
 
@@ -58,25 +56,21 @@ def running_robust_location(sig, method='m_loc_hub', n=20, c=1.345):
 
 
 def moving_average_method(sig, fs_radar):
+    # Perform moving-average over signal
     filter_length = 100
     x = np.pad(sig, (int(filter_length / 2), int((filter_length - 1) / 2)), 'edge')
     sig_subtr = sig - np.convolve(x, np.ones(filter_length) / filter_length, 'valid')
 
-    # dsplm = np.pad(sig, (filter_length, 0), 'edge')
-    # N = len(sig)
-    # sig_subtr = np.zeros(N)
-    # for k in range(N):
-    #     sig_subtr[k] = (dsplm[k + filter_length] - dsplm[k]) ** 2
-
-
-    # sig_subtr = sig
+    # Filter signal with bandpass-filter
     filter_displacement = signal.butter(10, 25, 'lowpass', fs=fs_radar, output='sos')
     sig_fil = signal.sosfilt(filter_displacement, sig_subtr)
 
+    # Apply Wavelet-transformation
     haar = pywt.Wavelet('haar')
     wvlt_displacement = pywt.swt(sig_fil, haar, level=1, start_level=4)[0][1]
-    # wvlt_displacement = sig_fil
 
+    # Divide signal into 'interval_length' seconds and match maximum and minimum amplitudes with an overlapping.
+    # Thus, two signals are created. If peaks have similar amplitudes, peak detection works better.
     overlapping = True
     if overlapping:
         interval_length = 1.5
@@ -94,8 +88,8 @@ def moving_average_method(sig, fs_radar):
                 sig_interval = signal.windows.triang(interval_sample_length)[:len(wvlt_displacement[i:])]*wvlt_displacement[i:]
             mean = MLocHub.MLocHUB(sig_interval, c=0.5)
             sig_interval = sig_interval - mean
-            sig_interval = sig_interval/max(sig_interval)
-            sig_interval_neg = sig_interval/min(sig_interval)
+            sig_interval = sig_interval/abs(max(sig_interval))
+            sig_interval_neg = sig_interval/abs(min(sig_interval))
             if i != 0:
                 if len(sig_interval) < overlapping_inds:
                     new_step = len(sig_interval)
@@ -122,11 +116,12 @@ def moving_average_method(sig, fs_radar):
                 sig_interval = wvlt_displacement[i:]
             new_signal = np.append(new_signal, sig_interval/max(sig_interval))
             new_signal_neg = np.append(new_signal_neg, sig_interval/(-min(sig_interval)))
-    # new_signal = wvlt_displacement
 
+    # Find peaks and valleys
     peaks_radar = find_ecg_peaks(fs_radar, new_signal, negative=False, visgraph=True)
     peaks_radar_neg = find_ecg_peaks(fs_radar, new_signal_neg, negative=True, visgraph=True)
 
+    # Save peaks into pickle-file
     with open('Peaks_radar_mov_av.pkl', 'wb') as outp:
         pickle.dump({'Peaks': peaks_radar, 'Peaks_neg': peaks_radar_neg, 'Detection_signal': new_signal}, outp, pickle.HIGHEST_PROTOCOL)
 
