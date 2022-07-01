@@ -1,5 +1,6 @@
 import scipy.io
 import os.path
+import os
 import numpy as np
 
 def data_acquisition(file='displacement_data\GDN0001\GDN0001_1_Resting.mat', to_end=False):
@@ -55,7 +56,7 @@ def data_acquisition(file='displacement_data\GDN0001\GDN0001_1_Resting.mat', to_
         icg_indices             = np.arange(radar_start_ind*fs_icg/fs_radar, end_time*fs_icg, dtype=int)
         intervention_indices    = np.arange(radar_start_ind*fs_intervention, end_time*fs_intervention, dtype=int)
     else:
-        radar_start_ind = 0
+        radar_start_ind = 420000
         if 2e6 <= len(radar_i):
             radar_end_ind = 2e6
         elif 1e6 <= len(radar_i):
@@ -80,6 +81,7 @@ def data_acquisition(file='displacement_data\GDN0001\GDN0001_1_Resting.mat', to_
             radar_end_ind = 1e5
         else:
             radar_end_ind = 9e4
+        radar_end_ind=520000
         radar_indices           = np.arange(radar_start_ind, radar_end_ind, dtype=int)
         ecg_indices             = np.arange(radar_start_ind*fs_ecg/fs_radar, radar_end_ind*fs_ecg/fs_radar, dtype=int)
         bp_indices              = np.arange(radar_start_ind*fs_bp/fs_radar, radar_end_ind*fs_bp/fs_radar, dtype=int)
@@ -100,4 +102,4 @@ def data_acquisition(file='displacement_data\GDN0001\GDN0001_1_Resting.mat', to_
     t_ecg                   = np.arange(1 / fs_ecg, (len(tfm_ecg1)+1) / fs_ecg, 1 / fs_ecg)
     t_bp                    = np.arange(1 / fs_bp, (len(tfm_bp)+1) / fs_bp, 1 / fs_bp)
 
-    return displacement, tfm_ecg2,  t_radar, fs_radar, t_ecg, fs_ecg
+    return displacement, tfm_ecg2, tfm_bp,  t_radar, fs_radar, t_ecg, fs_ecg, t_bp, fs_bp
