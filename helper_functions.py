@@ -40,7 +40,7 @@ def find_peaks(x, t, dist, iters, border_size=None):
                  border_size[1]
         peaks, _ = signal.find_peaks(x, height=border, distance=dist)
     else:
-        peaks, _ = signal.find_peaks(x)
+        peaks, _ = signal.find_peaks(x, distance=dist)
     # plt.figure()
     # plt.plot(t, x)
     # plt.plot(t, border)
